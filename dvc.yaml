@@ -1,0 +1,80 @@
+stages:
+  preprocess:
+    cmd: python -m pipeline.data.preprocess
+    deps:
+      - pipeline/data/preprocess.py
+      - data/raw/ner_dataset.csv
+    params:
+      - data.test_size
+      - data.val_size
+    outs:
+      - data/processed
+
+  train_crf:
+    cmd: python -m pipeline.training.train --model crf
+    deps:
+      - pipeline/training/train.py
+      - pipeline/models/crf_model.py
+      - data/processed
+    params:
+      - crf
+    outs:
+      - saved_models/crf
+    metrics:
+      - saved_models/crf/metrics.json:
+          cache: false
+
+  train_bilstm_crf:
+    cmd: python -m pipeline.training.train --model bilstm_crf
+    deps:
+      - pipeline/training/train.py
+      - pipeline/models/bilstm_crf.py
+      - data/processed
+    params:
+      - bilstm_crf
+    outs:
+      - saved_models/bilstm_crf
+    metrics:
+      - saved_models/bilstm_crf/metrics.json:
+          cache: false
+
+  train_bert_ner:
+    cmd: python -m pipeline.training.train --model bert_ner
+    deps:
+      - pipeline/training/train.py
+      - pipeline/models/bert_ner.py
+      - data/processed
+    params:
+      - bert_ner
+    outs:
+      - saved_models/bert_ner
+    metrics:
+      - saved_models/bert_ner/metrics.json:
+          cache: false
+
+  train_distilbert_ner:
+    cmd: python -m pipeline.training.train --model distilbert_ner
+    deps:
+      - pipeline/training/train.py
+      - pipeline/models/distilbert_ner.py
+      - data/processed
+    params:
+      - distilbert_ner
+    outs:
+      - saved_models/distilbert_ner
+    metrics:
+      - saved_models/distilbert_ner/metrics.json:
+          cache: false
+
+  evaluate:
+    cmd: python -m pipeline.training.evaluate
+    deps:
+      - pipeline/training/evaluate.py
+      - saved_models/crf
+      - saved_models/bilstm_crf
+      - saved_models/bert_ner
+      - saved_models/distilbert_ner
+      - data/processed
+    metrics:
+      - saved_models/comparison.json:
+          cache: false

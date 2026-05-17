@@ -1,0 +1,28 @@
+{
+  "org": [
+    "Google",
+    "Microsoft",
+    "Amazon",
+    "Apple",
+    "Meta",
+    "Turing Tag",
+    "OpenAI",
+    "DeepMind"
+  ],
+  "geo": [
+    "India",
+    "California",
+    "Bengaluru",
+    "Hyderabad",
+    "Vashi",
+    "USA",
+    "UK",
+    "Silicon Valley"
+  ],
+  "per": [
+    "Sundar Pichai",
+    "Satya Nadella",
+    "Sam Altman",
+    "Elon Musk"
+  ]
+}

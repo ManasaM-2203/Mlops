@@ -1,0 +1,34 @@
+__pycache__/
+*.pyc
+*.pyo
+.env
+venv/
+.venv/
+mlruns/
+mlartifacts/
+data/raw/
+data/processed/
+saved_models/
+best_model_info.json
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+node_modules/
+web/dist/
+.DS_Store
+*.log
+
+# Experimental / Local
+venv_old/
+scratch/
+
+# DVC Temporary Files
+.dvc/tmp/
+.dvc/lock
+.dvc/rwlock
+.dvc/rwlock.lock
+
+# Large model files
+*.h5
+ner_datasetreference.csv/

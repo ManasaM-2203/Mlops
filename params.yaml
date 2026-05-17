@@ -1,0 +1,43 @@
+data:
+  raw_path: data/raw/ner_dataset.csv
+  processed_path: data/processed
+  test_size: 0.15
+  val_size: 0.15
+
+crf:
+  algorithm: lbfgs
+  c1: 0.1
+  c2: 0.1
+  max_iterations: 50
+
+bilstm_crf:
+  embedding_dim: 128
+  hidden_dim: 256
+  dropout: 0.3
+  lr: 0.001
+  batch_size: 64
+  epochs: 10
+
+bert_ner:
+  model_name: bert-base-uncased
+  max_len: 128
+  lr: 3e-5
+  batch_size: 16
+  epochs: 3
+
+distilbert_ner:
+  model_name: distilbert-base-uncased
+  max_len: 128
+  lr: 5e-5
+  batch_size: 32
+  epochs: 3
+
+mlflow:
+  experiment_name: turing-tag-ner
+  tracking_uri: sqlite:///mlflow.db
+  registered_model_name: turing-tag-ner
+
+serving:
+  host: 0.0.0.0
+  port: 8000
+  model_stage: Staging

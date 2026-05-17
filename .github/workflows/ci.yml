@@ -1,0 +1,108 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  PYTHONPATH: .
+  PYTHON_VERSION: "3.11"
+  NODE_VERSION: 20
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - run: pip install flake8
+      - run: flake8 pipeline/ api/ tests/
+
+  test-pipeline:
+    name: Pipeline Tests
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - run: pip install -r requirements.txt
+      - run: pytest tests/pipeline/ -v --tb=short
+
+  test-api:
+    name: API Tests
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - run: pip install -r requirements.txt
+      - run: pytest tests/api/ -v --tb=short
+
+  frontend:
+    name: Frontend
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+      - run: npx tsc -b
+      - run: npm run build
+
+  train:
+    name: Train (CRF)
+    runs-on: ubuntu-latest
+    needs: [test-pipeline, test-api]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - name: Pull dataset
+        run: |
+          mkdir -p data/raw
+          echo "Place ner_dataset.csv via DVC or manual upload"
+
+      - name: Preprocess
+        run: python -m pipeline.data.preprocess
+        continue-on-error: true
+
+      - name: Train CRF
+        run: python -m pipeline.training.train --model crf
+        continue-on-error: true
+
+      - name: Evaluate
+        run: python -m pipeline.training.evaluate
+        continue-on-error: true
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: model-artifacts
+          path: |
+            saved_models/
+            best_model_info.json
+          if-no-files-found: ignore
